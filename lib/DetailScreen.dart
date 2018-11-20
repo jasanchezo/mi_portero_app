@@ -76,59 +76,16 @@ class _DetailScreenState extends State<DetailScreen> {
       appBar: AppBar(
         title: Text("Actividad de ingresos"), // BARRA SUPERIOR DE TÍTULO
       ),
-      body: new ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.all(20.0),
-        children: <Widget>[
-          new Card(
-            elevation: 5.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  leading: Icon(Icons.date_range),
-                  title: Text("Fecha"),
-                  subtitle: Text("2018-NOVIEMBRE-18"),
-                ),
-                ListTile(
-                  leading: Icon(Icons.access_time),
-                  title: Text("Hora"),
-                  subtitle: Text("20:18"),
-                ),
-                ListTile(
-                  leading: Icon(Icons.directions_car),
-                  title: Text("Vehículo"),
-                  subtitle: Text("Automóvil"),
-                ),
-                ListTile(
-                  leading: Icon(Icons.event_note),
-                  title: Text("Placas"),
-                  subtitle: Text("GTC-8915"),
-                ),
-                ListTile(
-                  leading: Icon(Icons.note),
-                  title: Text("Notas"),
-                  subtitle: Text("Repartidor de paquetería"),
-                ),
-                ButtonTheme.bar(
-                  child: ButtonBar(
-                    // BARRA DE BOTONES DE CADA WIDGET CARD
-                    children: <Widget>[
-                      FlatButton(
-                        child: const Text("+1"),
-                        onPressed: () {/* ... */},
-                      ),
-                      FlatButton(
-                        child: const Text("-1"),
-                        onPressed: () {/* ... */},
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      body: StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance.collection("accesos").snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+
+          return ListView.builder(
+            itemCount: snapshot.data.documents.length,
+            itemBuilder: (context, index) => _buildListItem(context, snapshot.data.documents[index]),
+          );
+        }
       ),
     );
   }
