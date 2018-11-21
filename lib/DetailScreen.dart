@@ -10,7 +10,6 @@ class DetailScreen extends StatefulWidget {
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  
   // WIDGET QUE RECIBIRÁ LA INFORMACIÓN PARA RENDERIZAR LOS DATOS DE FIREBASE
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
     return Card(
@@ -19,33 +18,23 @@ class _DetailScreenState extends State<DetailScreen> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ListTile(
-            leading: Icon(Icons.date_range),
-            title: Text("Fecha"),
-            // subtitle: Text("2018-NOVIEMBRE-18"),
-            subtitle: Text(document["estampaTiempo"].toString()),
-          ),
-          ListTile(
             leading: Icon(Icons.access_time),
-            title: Text("Hora"),
-            // subtitle: Text("20:18"),
+            title: Text("Estampa de tiempo"),
             subtitle: Text(document["estampaTiempo"].toString()),
           ),
           ListTile(
             leading: Icon(Icons.directions_car),
             title: Text("Vehículo"),
-            // subtitle: Text("Automóvil"),
             subtitle: Text(document["vehiculo"]),
           ),
           ListTile(
             leading: Icon(Icons.event_note),
             title: Text("Placas"),
-            // subtitle: Text("GTC-8915"),
             subtitle: Text(document["identificador"]),
           ),
           ListTile(
             leading: Icon(Icons.note),
             title: Text("Notas"),
-            // subtitle: Text("Repartidor de paquetería"),
             subtitle: Text(document["notas"]),
           ),
           ButtonTheme.bar(
@@ -53,12 +42,30 @@ class _DetailScreenState extends State<DetailScreen> {
               // BARRA DE BOTONES DE CADA WIDGET CARD
               children: <Widget>[
                 FlatButton(
-                  child: const Text("+1"),
-                  onPressed: () {/* ... */},
+                  child: const Text("Validar"),
+                  onPressed: () {
+                    Firestore.instance
+                        .runTransaction((Transaction transaction) async {
+                      DocumentSnapshot snap =
+                          await transaction.get(document.reference);
+                      await transaction.update(snap.reference, {
+                        "aceptado": "true",
+                      });
+                    });
+                  },
                 ),
                 FlatButton(
-                  child: const Text("-1"),
-                  onPressed: () {/* ... */},
+                  child: const Text("No válido"),
+                  onPressed: () {
+                    Firestore.instance
+                        .runTransaction((Transaction transaction) async {
+                      DocumentSnapshot snap =
+                          await transaction.get(document.reference);
+                      await transaction.update(snap.reference, {
+                        "aceptado": "false",
+                      });
+                    });
+                  },
                 ),
               ],
             ),
@@ -68,8 +75,6 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,16 +82,18 @@ class _DetailScreenState extends State<DetailScreen> {
         title: Text("Actividad de ingresos"), // BARRA SUPERIOR DE TÍTULO
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance.collection("accesos").snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
+          stream: Firestore.instance.collection("accesos").where("email", isEqualTo: widget.userName).snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) return new Text('Error: ${snapshot.error}');
 
-          return ListView.builder(
-            itemCount: snapshot.data.documents.length,
-            itemBuilder: (context, index) => _buildListItem(context, snapshot.data.documents[index]),
-          );
-        }
-      ),
+            return ListView.builder(
+              padding: EdgeInsets.all(15.0),
+              itemCount: snapshot.data.documents.length,
+              itemBuilder: (context, index) =>
+                  _buildListItem(context, snapshot.data.documents[index]),
+            );
+          }),
     );
   }
 }

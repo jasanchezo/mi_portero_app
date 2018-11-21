@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // IMPORTADO PARA AUTENTICACIÓN POR FIREBASE:
 import 'package:firebase_auth/firebase_auth.dart';
 import 'HomeScreen.dart';
+import 'AccessRegisterScreen.dart';
 // import 'RegisterScreen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -129,12 +130,26 @@ class _LoginScreenState extends State<LoginScreen> {
         FirebaseUser user = await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: _userName, password: _password);
         print("Signed In Ok: ${user.uid}");
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) => HomeScreen(
-                      userName: _userName,
-                    )));
+
+        if (_userName == "portero1@test.com") {
+          print("Portero: " + _userName);
+
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => AccessRegisterScreen(
+                        userName: _userName,
+                      )));
+        } else {
+          print("Residente: " + _userName);
+
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => HomeScreen(
+                        userName: _userName,
+                      )));
+        }
       } catch (e) {
         print("AuthError: $e");
 
